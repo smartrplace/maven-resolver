@@ -11,10 +11,15 @@
 ## Introduction
 The Maven resolver project is an OSGi bundle that resolves other bundles via Maven, installs them in your OSGi platform, and starts them. Furthermore, it provides a URL stream handler for Maven artifacts (the *mvn*-protocol).
 
-## Getting started
 Once started, the bundle looks for jar-files in the *init*-folder (relative to the current working directory) and for a configuration file *config/config.xml*. It will then try to resolve the Maven artifacts listed in the config.xml file, install them along with the jar-files from the init-folder, resolve all bundles and start them (except for fragment bundles). The resolving strategy is to first check the local Maven repository for an artifact, and if not successful, check a set of remote repositories. If the artifact is available in a remote repository, it will be downloaded to the local one. 
 
-TODO link to sample run configuration.
+## Getting started
+
+Download one of the sample configurations
+* [OSGi base configuration](https://github.com/smartrplace/osgi-run-configs/raw/master/rundir-osgi/rundir-osgi.zip)
+* [OGEMA configuration](https://github.com/smartrplace/osgi-run-configs/raw/master/rundir-ogema-felix/rundir-ogema-felix.zip)
+
+and follow the instructions at [https://github.com/smartrplace/osgi-run-configs](https://github.com/smartrplace/osgi-run-configs) to start the OSGi framework. Then modify the config.xml file to adapt the framework to your settings.
 
 The format of the config.xml file is illustrated by the following example, which starts some basic OSGi components:
 
