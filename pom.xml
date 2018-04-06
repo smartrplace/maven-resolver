@@ -1,0 +1,158 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.smartrplace.tools</groupId>
+	<artifactId>maven-resolver</artifactId>
+	<name>Maven resolver</name>
+	<description>Maven resolver</description>
+	<packaging>bundle</packaging>
+	<version>1.0.0-SNAPSHOT</version>
+
+	<inceptionYear>2018</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0</url>
+			<distribution>manual</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:git:git://github.com/smartrplace/maven-resolver.git</connection>
+		<developerConnection>scm:git:git://github.com/smartrplace/maven-resolver.git</developerConnection>
+		<url>https://github.com/smartrplace/maven-resolver</url>
+		<tag>HEAD</tag>
+	</scm>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+					<showDeprecation>true</showDeprecation>
+					<showWarnings>true</showWarnings>
+					<compilerArgs>
+						<arg>-Xlint</arg>
+					</compilerArgs>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Bundle-Activator>org.smartrplace.drivers.maven.resolver.impl.MavenResolver</Bundle-Activator>
+						<Private-Package>
+							org.apache.http.*,
+							org.apache.commons.*,
+							org.smartrplace.drivers.maven.resolver.impl
+						</Private-Package>
+						<Import-Package>
+							org.slf4j;resolution:=optional,
+							org.osgi.framework,
+							org.osgi.framework.wiring,
+							org.osgi.framework.startlevel,
+							org.osgi.service.url,
+							javax.xml.parsers,
+							javax.net,
+							org.xml.sax,
+							org.w3c.dom,
+							javax.net.ssl,
+							javax.naming
+						</Import-Package>
+						<Include-Resource>
+						  {maven-resources},
+						  META-INF/LICENSE=LICENSE,
+						  META-INF/DEPENDENCIES=DEPENDENCIES
+						</Include-Resource>
+					</instructions>
+				</configuration>
+			</plugin>
+		</plugins>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>com.mycila</groupId>
+					<artifactId>license-maven-plugin</artifactId>
+					<version>3.0</version>
+					<configuration>
+                        <!-- see 'mvn com.mycila:license-maven-plugin:help -Ddetail=true' -->
+						<header>header.txt</header>
+                        <keywords>
+                            <keyword>Smartrplace</keyword>
+                            <keyword>Apache</keyword>
+                            <keyword>License</keyword>
+                        </keywords>
+						<properties>
+							<year>2018</year>
+							<email>info@smartrplace.org</email>
+						</properties>
+						<encoding>UTF-8</encoding>
+
+						<includes>
+							<include>src/**</include>
+							<include>web/**</include>
+						</includes>
+						<excludes>
+							<exclude>target/**</exclude>
+							<exclude>**/*.txt</exclude>
+							<exclude>**/data/**</exclude>
+							<exclude>**/MANIFEST.MF</exclude>
+							<exclude>**/.project</exclude>
+							<exclude>**/.settings</exclude>
+							<exclude>**/.classpath</exclude>
+							<exclude>**/*.log</exclude>
+						</excludes>
+						<useDefaultExcludes>true</useDefaultExcludes>
+						<strictCheck>true</strictCheck>
+						<failIfMissing>true</failIfMissing>
+					</configuration>
+					<executions>
+						<execution>
+							<goals>
+								<goal>format</goal>
+							</goals>
+							<!-- don't execute this plugin automatically -> need to be invoked
+								explicitly: mvn license:[goal] [goal] := check, format or remove -->
+							<phase>validate</phase>
+						</execution>
+					</executions>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.core</artifactId>
+			<version>5.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>osgi.cmpn</artifactId>
+			<version>6.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpcore-osgi</artifactId>
+			<version>4.4.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient-osgi</artifactId>
+			<version>4.5.2</version>
+		</dependency>
+	</dependencies>
+
+</project>
