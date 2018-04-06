@@ -1,10 +1,16 @@
 # Maven resolver
 
-----
+## Content
+* [Introduction](#introduction)
+* [Getting started](#getting-started)
+* [Configuration](#configuration)
+* [Build](#build)
+* [Dependencies](#dependencies)
+* [License](#license)
+
 ## Introduction
 The Maven resolver project is an OSGi bundle that resolves other bundles via Maven, installs them in your OSGi platform, and starts them. Furthermore, it provides a URL stream handler for Maven artifacts (the *mvn*-protocol).
 
----
 ## Getting started
 Once started, the bundle looks for jar-files in the *init*-folder (relative to the current working directory) and for a configuration file *config/config.xml*. It will then try to resolve the Maven artifacts listed in the config.xml file, install them along with the jar-files from the init-folder, resolve all bundles and start them (except for fragment bundles). The resolving strategy is to first check the local Maven repository for an artifact, and if not successful, check a set of remote repositories. If the artifact is available in a remote repository, it will be downloaded to the local one. 
 
@@ -46,7 +52,6 @@ The format of the config.xml file is illustrated by the following example, which
 </configuration>
 ```
 
----
 ## Configuration
 By default, the resolver checks the local .m2-repository (directory *~/.m2*) and Maven central for Maven artifacts. The remote repositories can be configured via a file *config/repos.properties*. Put each repository URL in a separate line, for instance:
 ```
@@ -61,7 +66,6 @@ Supported configuration properties (may be set as system properties or OSGi fram
 | org.smartrplace.maven.resolver.repos_file | config/repos.properties | Repositories configuration file |
 | org.smartrplace.maven.resolver.config_path | config/config.xml | Path to configuration file for bundles resolved via Maven |
 
----
 ## Build
 Go to project base folder and execute `mvn clean install`. Prerequisite: Java 7 or higher and Maven 3 or higher.
 
