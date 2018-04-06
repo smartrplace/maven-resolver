@@ -32,9 +32,9 @@ From: 'The Apache Software Foundation' (http://www.apache.org/)
 // ------------------------------------------------------------------
 
 From: 'The OSGi alliance' (http://www.osgi.org)
-   - OSGi core API () org.osgi:org.osgi.core:jar:5.0.0
+   - OSGi core API (https://mvnrepository.com/artifact/org.osgi/org.osgi.core/5.0.0) org.osgi:org.osgi.core:jar:5.0.0
      License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
-   - OSGi Compendium () org.osgi:osgi.cmpn:jar:6.0.0
+   - OSGi Compendium (https://mvnrepository.com/artifact/org.osgi/osgi.cmpn/6.0.0) org.osgi:osgi.cmpn:jar:6.0.0
      License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
 
 From: 'QOS.ch' (http://www.qos.ch)
