@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.slf4j.LoggerFactory;
+import org.smartrplace.drivers.maven.resolver.impl.MavenResolver;
 
 class Sha1ChecksumValidation implements ChecksumValidation {
 
@@ -25,7 +25,7 @@ class Sha1ChecksumValidation implements ChecksumValidation {
 		try {
 			return DigestUtils.sha1Hex(stream).equals(expectedResult);
 		} catch (IOException e) {
-			LoggerFactory.getLogger(Sha1ChecksumValidation.class).warn("Failed to compute checksum",e);
+			MavenResolver.warn("Failed to compute checksum",e);
 			return false;
 		}
 	}

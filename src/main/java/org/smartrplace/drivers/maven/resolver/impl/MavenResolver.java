@@ -208,7 +208,7 @@ public class MavenResolver implements BundleActivator {
 		}
 	}
 
-	static void warn(String msg, Throwable e) {
+	public static void warn(String msg, Throwable e) {
 		try {
 			LoggerFactory.getLogger(MavenResolver.class).warn(msg, e);
 		} catch (NoClassDefFoundError ee) {
