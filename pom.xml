@@ -51,7 +51,8 @@
 						<Private-Package>
 							org.apache.http.*,
 							org.apache.commons.*,
-							org.smartrplace.drivers.maven.resolver.impl
+							org.smartrplace.drivers.maven.resolver.impl,
+							org.smartrplace.drivers.maven.resolver.impl.checksums
 						</Private-Package>
 						<Import-Package>
 							org.slf4j;resolution:=optional,

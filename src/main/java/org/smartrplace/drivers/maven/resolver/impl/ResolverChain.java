@@ -86,7 +86,7 @@ class ResolverChain {
 	}
 
 	InputStream resolveLocal(final MavenArtifact artifact) throws IOException {
-		return local.resolve(artifact);
+		return local.resolve(artifact).result;
 	}
 
 	Path resolveLocalUrl(final MavenArtifact artifact) throws IOException {
@@ -95,11 +95,11 @@ class ResolverChain {
 
 	boolean resolve(final MavenArtifact artifact) throws IOException {
 		for (Repository r : chain) {
-			try (final InputStream result = r.resolve(artifact)) {
+			try (final ResolutionResult result = r.resolve(artifact)) {
 				if (result != null) {
 					if (r != local) {
 						try {
-							local.installArtifact(artifact, result);
+							local.installArtifact(artifact, result, true);
 						} catch (IOException e) {
 							MavenResolver.warn("Failed to install artifact " + artifact + " in local Maven repository", e);
 							return false;

@@ -15,14 +15,16 @@
  */
 package org.smartrplace.drivers.maven.resolver.impl;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+
+import org.smartrplace.drivers.maven.resolver.impl.checksums.Checksums;
 
 class LocalMavenRepo implements Repository {
 
@@ -41,9 +43,9 @@ class LocalMavenRepo implements Repository {
 	}
 
 	@Override
-	public InputStream resolve(MavenArtifact artifact) throws IOException {
+	public ResolutionResult resolve(MavenArtifact artifact) throws IOException {
 		final Path file = resolveFile(artifact);
-		return file == null ? null : Files.newInputStream(file);
+		return file == null ? null : new ResolutionResult(Files.newInputStream(file));
 	}
 
 	Path resolveFile(MavenArtifact artifact) throws MalformedURLException {
@@ -60,7 +62,7 @@ class LocalMavenRepo implements Repository {
 		return file;
 	}
 
-	void installArtifact(final MavenArtifact artifact, final InputStream in) throws IOException {
+	void installArtifact(final MavenArtifact artifact, final ResolutionResult result, boolean retry) throws IOException {
 		Path dir = homeRepo;
 		for (String pckg : artifact.getGroupId().split("\\.")) {
 			if (pckg.isEmpty())
@@ -72,9 +74,36 @@ class LocalMavenRepo implements Repository {
 		Files.createDirectories(dir);
 		final Path file = dir
 			.resolve(artifact.getArtifactId() + "-" + artifact.getVersion() + ".jar");
-		Files.copy(in, file, StandardCopyOption.REPLACE_EXISTING);
+		Files.copy(result.result, file, StandardCopyOption.REPLACE_EXISTING);
+		if (result.checksumAlgo != null) {
+			final Path checksum = dir
+					.resolve(artifact.getArtifactId() + "-" + artifact.getVersion() + ".jar." + result.checksumAlgo);
+			Files.copy(result.checksumInput, checksum);
+			if (!Checksums.getValidator(result.checksumAlgo).validate(Files.newInputStream(file), 
+					toString(Files.newBufferedReader(checksum, StandardCharsets.UTF_8)).toString())) {
+				Files.delete(file);
+				Files.delete(checksum);
+				if (retry)
+					installArtifact(artifact, result, false);
+				else
+					throw new IOException("Failed to install artifact " + artifact + ": checksums do not match!");
+			}
+		}
+		
 	}
 
+	private static StringBuilder toString(final BufferedReader reader) throws IOException {
+		final char[] buff = new char[124];
+		final StringBuilder sb = new StringBuilder();
+		int read;
+		while((read = reader.read(buff)) != -1) {
+			sb.append(buff, 0, read);
+			if (sb.length() > 1000)
+				return null;
+		}
+		return sb;
+	}
+	
 	@Override
 	public String toString() {
 		return "Local repository: " + homeRepo;

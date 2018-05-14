@@ -29,8 +29,12 @@ import org.apache.http.impl.client.HttpClients;
 class Client {
 
 	private final CloseableHttpClient client = HttpClients.createDefault();
-
+	
 	InputStream download(final String baseUrl, final MavenArtifact artifact) throws ClientProtocolException, IOException {
+		return download(baseUrl, artifact, null);
+	}
+
+	InputStream download(final String baseUrl, final MavenArtifact artifact, String checksumAlgo) throws ClientProtocolException, IOException {
 		final StringBuilder sb = new StringBuilder();
 		if (baseUrl.endsWith("/"))
 			sb.append(baseUrl.substring(0, baseUrl.length()-1));
@@ -41,6 +45,9 @@ class Client {
 		}
 		sb.append('/').append(artifact.getArtifactId()).append('/').append(artifact.getVersion()).append('/')
 			.append(artifact.getArtifactId()).append('-').append(artifact.getVersion()).append(".jar");
+		if (checksumAlgo != null) {
+			sb.append('.').append(checksumAlgo);
+		}
 		final HttpGet get = new HttpGet(sb.toString());
 		final CloseableHttpResponse resp = client.execute(get);
 		if (resp.getStatusLine().getStatusCode() / 100 != 2) {
@@ -49,8 +56,8 @@ class Client {
 		}
 		return new InnerInputStream(resp.getEntity().getContent(), resp);
 	}
-
-	void closeSmoothly(final Closeable stream) {
+	
+	static void closeSmoothly(final Closeable stream) {
 		if (stream == null)
 			return;
 		try {

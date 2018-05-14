@@ -16,10 +16,9 @@
 package org.smartrplace.drivers.maven.resolver.impl;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 interface Repository {
 
-	InputStream resolve(MavenArtifact artifact) throws IOException;
+	ResolutionResult resolve(MavenArtifact artifact) throws IOException;
 	
 }

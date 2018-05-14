@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
+import org.smartrplace.drivers.maven.resolver.impl.checksums.Checksums;
+
 class RemoteRepository implements Repository {
 
 	private final Client client;
@@ -30,8 +32,18 @@ class RemoteRepository implements Repository {
 	}
 
 	@Override
-	public InputStream resolve(MavenArtifact artifact) throws IOException {
-		return client.download(url.toString(), artifact);
+	public ResolutionResult resolve(MavenArtifact artifact) throws IOException {
+		final InputStream stream = client.download(url.toString(), artifact);
+		if (artifact == null)
+			return null;
+		for (String algo : Checksums.getAlgos()) {
+			final InputStream in = client.download(url.toString(), artifact, algo);
+			if (in != null) {
+				return new ResolutionResult(stream, algo, in);
+			}
+		}
+		// no checksum available
+		return new ResolutionResult(stream);
 	}
 
 	@Override
