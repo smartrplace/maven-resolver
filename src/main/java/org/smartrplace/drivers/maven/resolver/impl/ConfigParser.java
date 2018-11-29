@@ -21,7 +21,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -37,12 +36,12 @@ import org.xml.sax.SAXException;
 
 class ConfigParser {
 
-	static List<MavenArtifact> parse(final BundleContext ctx) throws ParserConfigurationException, IOException, SAXException {
+	static ConfigFile parse(final BundleContext ctx) throws ParserConfigurationException, IOException, SAXException {
 		final String path0 = ctx.getProperty(Properties.CONFIG_FILE_PROPERTY);
 		final Path path = Paths.get(path0 != null ? path0 : Properties.CONFIG_FILE_DEFAULT);
 		if (!Files.exists(path)) {
 			MavenResolver.warn("No config.xml file found at " + path);
-			return Collections.emptyList();
+			return new ConfigFile();
 		}
 		final List<MavenArtifact> artifacts = new ArrayList<>();
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -51,8 +50,8 @@ class ConfigParser {
 		try (BufferedInputStream bis = new BufferedInputStream(Files.newInputStream(path))) {
 			document = builder.parse(bis);
 			Node configuration = getUniqueSubnode(document, "configuration");
-			Node properties = getUniqueSubnode(configuration, "bundles");
-			NodeList nl = properties.getChildNodes();
+			Node bundles = getUniqueSubnode(configuration, "bundles");
+			NodeList nl = bundles.getChildNodes();
 			for (int i=0;i<nl.getLength();i++) {
 				Node node = nl.item(i);
 				if (node.getNodeType() != Node.ELEMENT_NODE || !"bundle".equals(node.getNodeName()))
@@ -77,8 +76,28 @@ class ConfigParser {
 						doStart);
 				artifacts.add(artifact);
 			}
+			final Node deleteNode = getUniqueSubnode(configuration, "deleteList");
+			final List<String> deleteList;
+			if (deleteNode == null)
+				deleteList = null;
+			else {
+				deleteList = new ArrayList<>();
+				final NodeList nl2 = deleteNode.getChildNodes();
+				for (int i=0;i<nl2.getLength();i++) {
+					Node node = nl2.item(i);
+					if (node.getNodeType() != Node.ELEMENT_NODE || !"file".equals(node.getNodeName()))
+						continue;
+					String text = node.getTextContent();
+					if (text == null)
+						continue;
+					text = text.trim();
+					if (text.isEmpty())
+						continue;
+					deleteList.add(text);
+				}
+			}
+			return new ConfigFile(artifacts, deleteList);
 		}
-		return artifacts;
 	}
 
 	private static boolean doStart(final Node startNode) {

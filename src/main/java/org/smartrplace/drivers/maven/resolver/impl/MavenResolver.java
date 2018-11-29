@@ -64,12 +64,65 @@ public class MavenResolver implements BundleActivator {
 						return;
 					}
 					debug("Clean start detected, now launching bundles.");
-					startBundles();
+					final ConfigFile cfg = ConfigParser.parse(ctx);
+					cleanUp(cfg.getDeleteFiles(), ctx);
+					startBundles(cfg.getArtifacts());
 					cleanMarker.createNewFile();
 				} catch (ParserConfigurationException | IOException | SAXException e) {
 					MavenResolver.warn("Initialization failed", e);
 				} finally {
 					initLock.release();
+				}
+			}
+			
+			// called on clean start only
+			private void cleanUp(final List<Path> deleteFiles, final BundleContext ctx) {
+				final Path workingDir = Paths.get(".");
+				final String property = ctx.getProperty("org.osgi.framework.storage");
+				final Path osgiStorageDir; // TODO the method below is not reliable
+				if (property != null) {
+					osgiStorageDir = Paths.get(property);
+				} else {
+					osgiStorageDir = Paths.get("felix-cache");
+				}
+				for (Path path : deleteFiles) {
+					if (!isSubdir(workingDir, path) || workingDir.normalize().equals(path.normalize())) {
+						warn("Specified delete file " + path + " is not a subpath of the working dir, omitting this.");
+						continue;
+					}
+					if (isSubdir(osgiStorageDir, path)) {
+						debug("Skipping deletion of OSGi storage dir {}", path);
+						continue;
+					}
+					try {
+						deleteRecursively(path);
+					} catch (IOException e) {
+						warn("Failed to delete file/folder " + path, e);
+					}
+				}
+			}
+			
+			private void deleteRecursively(final Path p) throws IOException {
+				if (Files.isRegularFile(p)) {
+					debug("Deleting file {}", p);
+					Files.delete(p);
+				}
+				else if (Files.isDirectory(p)) {
+					debug("Deleting folder {}", p);
+					Files.walkFileTree(p, new SimpleFileVisitor<Path>() {
+						
+						@Override
+						public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+							Files.delete(file);
+							return FileVisitResult.CONTINUE;
+						}
+
+						@Override
+						public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+							Files.delete(dir);
+						    return FileVisitResult.CONTINUE;
+						}
+					});
 				}
 			}
 
@@ -86,9 +139,8 @@ public class MavenResolver implements BundleActivator {
 				debug("Start level set to " + (maxStartLevel + 1));
 			}
 
-			private void startBundles() throws ParserConfigurationException, IOException, SAXException {
-				final List<MavenArtifact> artifacts = ConfigParser.parse(ctx);
-				if (artifacts == null || artifacts.isEmpty()) {
+			private void startBundles(final List<MavenArtifact> artifacts) throws ParserConfigurationException, IOException, SAXException {
+				if (artifacts == null || artifacts.isEmpty()) { // FIXME install static files in any case
 					return;
 				}
 				final Resolver resolver = new Resolver(artifacts, ctx);
@@ -186,7 +238,7 @@ public class MavenResolver implements BundleActivator {
 			LoggerFactory.getLogger(MavenResolver.class).debug(msg);
 		} catch (NoClassDefFoundError e) {
 			for (Object arg: arguments) {
-				msg = msg.replaceFirst("\\{\\}", arg.toString());
+				msg = msg.replaceFirst("\\{\\}", arg.toString().replace("\\", "\\\\"));
 			}
 			System.out.println(msg);
 		}
@@ -213,7 +265,7 @@ public class MavenResolver implements BundleActivator {
 			LoggerFactory.getLogger(MavenResolver.class).warn(msg, e);
 		} catch (NoClassDefFoundError ee) {
 			System.err.println(msg);
-			ee.printStackTrace();
+			e.printStackTrace();
 		}
 	}
 
@@ -225,13 +277,17 @@ public class MavenResolver implements BundleActivator {
 		}
 	}
 
-	static void error(String msg, Throwable ee) {
+	static void error(String msg, Throwable e) {
 		try {
-			LoggerFactory.getLogger(MavenResolver.class).error(msg, ee);
-		} catch (NoClassDefFoundError e) {
+			LoggerFactory.getLogger(MavenResolver.class).error(msg, e);
+		} catch (NoClassDefFoundError ee) {
 			System.err.println(msg);
-			ee.printStackTrace();
+			e.printStackTrace();
 		}
 	}
 
+	static boolean isSubdir(final Path parent, final Path child) {
+		return child.toAbsolutePath().normalize().toString().startsWith(parent.toAbsolutePath().normalize().toString());
+	}
+	
 }
