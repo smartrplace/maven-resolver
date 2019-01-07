@@ -38,11 +38,34 @@ class ConfigParser {
 
 	static ConfigFile parse(final BundleContext ctx) throws ParserConfigurationException, IOException, SAXException {
 		final String path0 = ctx.getProperty(Properties.CONFIG_FILE_PROPERTY);
-		final Path path = Paths.get(path0 != null ? path0 : Properties.CONFIG_FILE_DEFAULT);
-		if (!Files.exists(path)) {
-			MavenResolver.warn("No config.xml file found at " + path);
-			return new ConfigFile();
+		final List<Path> paths = new ArrayList<>();
+		if (path0 != null) {
+			final String[] arr = path0.split(",");
+			for (String a: arr) {
+				a = a.trim();
+				if (a.isEmpty())
+					continue;
+				final Path p = Paths.get(a);
+				if (!Files.isRegularFile(p)) {
+					MavenResolver.warn("No config.xml file found at " + p);
+					continue;
+				}
+				paths.add(p);
+			}
 		}
+		if (paths.isEmpty()) {
+			final Path def = Paths.get(Properties.CONFIG_FILE_DEFAULT);
+			if (Files.isRegularFile(def))
+				paths.add(def);
+		}
+		final List<ConfigFile> files = new ArrayList<>(paths.size());
+		for (Path p : paths) {
+			files.add(parseFile(p));
+		}
+		return ConfigFile.merge(files);
+	}
+	
+	private static ConfigFile parseFile(final Path path) throws ParserConfigurationException, IOException, SAXException {
 		final List<MavenArtifact> artifacts = new ArrayList<>();
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = factory.newDocumentBuilder();

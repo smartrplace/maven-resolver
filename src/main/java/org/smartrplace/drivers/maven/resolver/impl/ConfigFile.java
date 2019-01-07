@@ -3,6 +3,7 @@ package org.smartrplace.drivers.maven.resolver.impl;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -34,6 +35,18 @@ class ConfigFile {
 	
 	public List<Path> getDeleteFiles() {
 		return deleteFiles;
+	}
+	
+	static ConfigFile merge(Collection<ConfigFile> files) {
+		final List<MavenArtifact> artifacts = new ArrayList<>();
+		final List<String> deleteFiles = new ArrayList<>();
+		for (ConfigFile cf : files) {
+			artifacts.addAll(cf.getArtifacts());
+			for (Path p : cf.getDeleteFiles()) {
+				deleteFiles.add(p.toString());
+			}
+		}
+		return new ConfigFile(artifacts, deleteFiles);
 	}
 	
 }

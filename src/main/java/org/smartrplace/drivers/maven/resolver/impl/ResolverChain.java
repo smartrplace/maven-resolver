@@ -64,6 +64,9 @@ class ResolverChain {
 		try (final BufferedReader reader = Files.newBufferedReader(reposFile, StandardCharsets.UTF_8)) {
 			String line;
 			while ((line = reader.readLine()) != null) {
+				line = line.trim();
+				if (line.startsWith("#"))
+					continue;
 				final String[] entries = line.split(",");
 				for (String entry : entries) {
 					entry = entry.trim();
